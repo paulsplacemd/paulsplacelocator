@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[ ]:
+
+
 import streamlit as st
 import requests
 import pandas as pd
@@ -8,10 +14,10 @@ from geopy.distance import geodesic
 from streamlit_folium import st_folium
 from pyproj import Transformer
 
-# Streamlit App Title
+# Streamlit Title
 st.title("Homeless Shelter Locator Near Paul's Place")
 
-# Hardcoded coordinates for Paul's Place
+# Raw coordinates for Paul's Place
 pauls_place_lat, pauls_place_lon = 39.2820504, -76.6328439
 
 # API Endpoint
@@ -56,18 +62,6 @@ def main():
         # Drop rows with invalid coordinates
         shelters_df = shelters_df.dropna(subset=['latitude', 'longitude'])
 
-        # Add a sample shelter near Paul's Place
-        sample_shelter = {
-            'name': 'Sample Shelter',
-            'address': 'Near Paul\'s Place',
-            'latitude': 39.2752,  # Latitude
-            'longitude': -76.6329  # Longitude
-        }
-        # Convert the sample shelter to a DataFrame
-        sample_shelter_df = pd.DataFrame([sample_shelter])
-        # Append using pd.concat
-        shelters_df = pd.concat([shelters_df, sample_shelter_df], ignore_index=True)
-
         # Convert to GeoDataFrame
         geometry = [Point(xy) for xy in zip(shelters_df['longitude'], shelters_df['latitude'])]
         shelters_gdf = gpd.GeoDataFrame(shelters_df, geometry=geometry, crs="EPSG:4326")
@@ -82,16 +76,19 @@ def main():
         # Format distances as strings with "miles" appended
         shelters_gdf['distance_to_pauls_place'] = shelters_gdf['distance_to_pauls_place'].apply(lambda x: f"{x:.2f} miles")
 
-        # Display distances to Paul's Place
-        st.write("Distances to Paul's Place:")
-        st.write(shelters_gdf[['name', 'distance_to_pauls_place']].head())
+        # Sort by distance in ascending order
+        shelters_gdf_sorted = shelters_gdf.sort_values(by='distance_to_pauls_place', key=lambda x: x.str.replace(' miles', '').astype(float))
+
+        # Display distances to Paul's Place in ascending order
+        st.write("Distances to Paul's Place (Sorted in Ascending Order):")
+        st.write(shelters_gdf_sorted[['name', 'distance_to_pauls_place']])
 
         # Filter shelters within 10 miles
         distance_threshold = 10  # 10 miles
-        shelters_gdf_filtered = shelters_gdf[shelters_gdf['distance_to_pauls_place'].str.replace(' miles', '').astype(float) <= distance_threshold]
+        shelters_gdf_filtered = shelters_gdf_sorted[shelters_gdf_sorted['distance_to_pauls_place'].str.replace(' miles', '').astype(float) <= distance_threshold]
 
         # Print the filtered shelters within 10 miles
-        st.write(f"Shelters Within {distance_threshold} Miles of Paul's Place:")
+        st.write(f"Shelters Within {distance_threshold} Miles of Paul's Place (Sorted in Ascending Order):")
         st.dataframe(shelters_gdf_filtered[['name', 'address', 'distance_to_pauls_place']])
 
         # Folium Map
