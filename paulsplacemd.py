@@ -14,10 +14,10 @@ from geopy.distance import geodesic
 from streamlit_folium import st_folium
 from pyproj import Transformer
 
-# Streamlit Title
+# Streamlit App Title
 st.title("Homeless Shelter Locator Near Paul's Place")
 
-# Raw coordinates for Paul's Place
+# Hardcoded coordinates for Paul's Place
 pauls_place_lat, pauls_place_lon = 39.2820504, -76.6328439
 
 # API Endpoint
@@ -62,6 +62,13 @@ def main():
         # Drop rows with invalid coordinates
         shelters_df = shelters_df.dropna(subset=['latitude', 'longitude'])
 
+        # Add a column for function/category (example data)
+        # Replace this with your actual data
+        shelters_df['function'] = [
+            "Emergency Shelters", "Food & Meals", "Health Care & Treatment", "Veterans", 
+            "LGBTQIA+", "Youth", "Employment", "Assistance Programs & Resources", "Legal Aid"
+        ][:len(shelters_df)]  # Adjust based on your data
+
         # Convert to GeoDataFrame
         geometry = [Point(xy) for xy in zip(shelters_df['longitude'], shelters_df['latitude'])]
         shelters_gdf = gpd.GeoDataFrame(shelters_df, geometry=geometry, crs="EPSG:4326")
@@ -81,15 +88,22 @@ def main():
 
         # Display distances to Paul's Place in ascending order
         st.write("Distances to Paul's Place:")
-        st.write(shelters_gdf_sorted[['name', 'distance_to_pauls_place']])
+        st.write(shelters_gdf_sorted[['name', 'function', 'distance_to_pauls_place']])
 
         # Filter shelters within 10 miles
         distance_threshold = 10  # 10 miles
         shelters_gdf_filtered = shelters_gdf_sorted[shelters_gdf_sorted['distance_to_pauls_place'].str.replace(' miles', '').astype(float) <= distance_threshold]
 
+        # Allow users to filter by function/category
+        function_options = shelters_gdf_filtered['function'].unique().tolist()
+        selected_functions = st.multiselect("Filter by Function/Category:", function_options, default=function_options)
+
+        # Filter by selected functions
+        shelters_gdf_filtered = shelters_gdf_filtered[shelters_gdf_filtered['function'].isin(selected_functions)]
+
         # Print the filtered shelters within 10 miles
         st.write(f"Shelters Within {distance_threshold} Miles of Paul's Place:")
-        st.dataframe(shelters_gdf_filtered[['name', 'address', 'distance_to_pauls_place']])
+        st.dataframe(shelters_gdf_filtered[['name', 'function', 'address', 'distance_to_pauls_place']])
 
         # Folium Map
         m = folium.Map(location=[pauls_place_lat, pauls_place_lon], zoom_start=14)
@@ -108,7 +122,7 @@ def main():
                 continue
             folium.Marker(
                 location=[row['latitude'], row['longitude']],
-                popup=row['name'],
+                popup=f"{row['name']} ({row['function']})",
                 icon=folium.Icon(color="green")
             ).add_to(m)
 
