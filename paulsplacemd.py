@@ -80,7 +80,7 @@ def main():
         shelters_gdf_sorted = shelters_gdf.sort_values(by='distance_to_pauls_place', key=lambda x: x.str.replace(' miles', '').astype(float))
 
         # Display distances to Paul's Place in ascending order
-        st.write("Distances to Paul's Place (Sorted in Ascending Order):")
+        st.write("Distances to Paul's Place:")
         st.write(shelters_gdf_sorted[['name', 'distance_to_pauls_place']])
 
         # Filter shelters within 10 miles
