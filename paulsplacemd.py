@@ -88,7 +88,7 @@ def main():
         shelters_gdf_filtered = shelters_gdf_sorted[shelters_gdf_sorted['distance_to_pauls_place'].str.replace(' miles', '').astype(float) <= distance_threshold]
 
         # Print the filtered shelters within 10 miles
-        st.write(f"Shelters Within {distance_threshold} Miles of Paul's Place (Sorted in Ascending Order):")
+        st.write(f"Shelters Within {distance_threshold} Miles of Paul's Place:")
         st.dataframe(shelters_gdf_filtered[['name', 'address', 'distance_to_pauls_place']])
 
         # Folium Map
