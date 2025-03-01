@@ -62,12 +62,32 @@ def main():
         # Drop rows with invalid coordinates
         shelters_df = shelters_df.dropna(subset=['latitude', 'longitude'])
 
-        # Add a column for function/category (example data)
-        # Replace this with your actual data
-        shelters_df['function'] = [
-            "Emergency Shelters", "Food & Meals", "Health Care & Treatment", "Veterans", 
-            "LGBTQIA+", "Youth", "Employment", "Assistance Programs & Resources", "Legal Aid"
-        ][:len(shelters_df)]  # Adjust based on your data
+        # Define a mapping of location names to their functions
+        function_mapping = {
+            "Baltimore Rescue Mission - Men's Division": "Emergency Shelters",
+            "Baltimore Rescue Mission - Karis Home": "Emergency Shelters",
+            "Baltimore Outreach Services": "Emergency Shelters",
+            "Helping Up Mission Men's Center": "Emergency Shelters",
+            "TIME Recovery Shelter for Men": "Emergency Shelters",
+            "My Sister's Place Women's Center": "Emergency Shelters",
+            "House of Ruth Maryland": "Emergency Shelters",
+            "HEBCAC Nest Youth Shelter": "Emergency Shelters",
+            "TIME Organization Emergency Men's Shelter": "Emergency Shelters",
+            "TIME Organization Emergency Women's Shelter": "Emergency Shelters",
+            "Project PLASE - Maryland Ave.": "Emergency Shelters",
+            "Sarah's Hope Family Shelter": "Emergency Shelters",
+            "Weinberg Housing and Resource Center": "Emergency Shelters",
+            "Helping Up Mission for Women & Children": "Emergency Shelters",
+            "Mission Possible Shelter": "Emergency Shelters",
+            "Franciscan Center": "Food & Meals",
+            "Our Daily Bread": "Food & Meals",
+            "Beans and Bread": "Food & Meals",
+            "Paul's Place": "Food & Meals",
+            # Add more mappings as needed
+        }
+
+        # Add a column for function/category
+        shelters_df['function'] = shelters_df['name'].map(function_mapping).fillna("Unknown")
 
         # Convert to GeoDataFrame
         geometry = [Point(xy) for xy in zip(shelters_df['longitude'], shelters_df['latitude'])]
