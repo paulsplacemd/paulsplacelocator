@@ -26,6 +26,18 @@ api_url = "https://services1.arcgis.com/UWYHeuuJISiGmgXx/arcgis/rest/services/Ho
 # Coordinate Transformer (State Plane Maryland to WGS84)
 transformer = Transformer.from_crs("EPSG:2248", "EPSG:4326", always_xy=True)
 
+# Load CSV file with additional locations
+@st.cache_data
+def load_csv_data():
+    try:
+        csv_df = pd.read_csv("baltimore_help_social_health_welfare_shelters_locations.csv")  # Load the CSV file
+        # Remove Paul's Place from the CSV data
+        csv_df = csv_df[csv_df["Location"] != "Paul's Place"]
+        return csv_df
+    except Exception as e:
+        st.error(f"Error loading CSV file: {e}")
+        return pd.DataFrame()
+
 # Fetch Data from API
 @st.cache_data
 def fetch_shelter_data():
@@ -55,12 +67,27 @@ def main():
     # Fetch shelter data
     shelters_df = fetch_shelter_data()
 
-    if not shelters_df.empty:
-        # Convert projected coordinates to latitude/longitude
-        shelters_df[['latitude', 'longitude']] = shelters_df.apply(convert_coordinates, axis=1)
+    # Load CSV data
+    csv_df = load_csv_data()
 
-        # Drop rows with invalid coordinates
-        shelters_df = shelters_df.dropna(subset=['latitude', 'longitude'])
+    if not shelters_df.empty or not csv_df.empty:
+        # Convert projected coordinates to latitude/longitude for API data
+        if not shelters_df.empty:
+            shelters_df[['latitude', 'longitude']] = shelters_df.apply(convert_coordinates, axis=1)
+            shelters_df = shelters_df.dropna(subset=['latitude', 'longitude'])
+
+        # Merge CSV data with API data
+        if not csv_df.empty:
+            # Rename columns in CSV data to match API data
+            csv_df = csv_df.rename(columns={"Location": "name", "Latitude": "latitude", "Longitude": "longitude"})
+            # Add missing columns to CSV data
+            csv_df['address'] = "Not Available"  # Add a placeholder for missing address data
+            csv_df['function'] = "Unknown"  # Default function for CSV data
+
+            # Combine API and CSV data
+            combined_df = pd.concat([shelters_df, csv_df], ignore_index=True)
+        else:
+            combined_df = shelters_df
 
         # Define a mapping of location names to their functions
         function_mapping = {
@@ -86,12 +113,12 @@ def main():
             # Add more mappings as needed
         }
 
-        # Add a column for function/category
-        shelters_df['function'] = shelters_df['name'].map(function_mapping).fillna("Unknown")
+        # Update the function column in the combined DataFrame
+        combined_df['function'] = combined_df['name'].map(function_mapping).fillna("Unknown")
 
         # Convert to GeoDataFrame
-        geometry = [Point(xy) for xy in zip(shelters_df['longitude'], shelters_df['latitude'])]
-        shelters_gdf = gpd.GeoDataFrame(shelters_df, geometry=geometry, crs="EPSG:4326")
+        geometry = [Point(xy) for xy in zip(combined_df['longitude'], combined_df['latitude'])]
+        shelters_gdf = gpd.GeoDataFrame(combined_df, geometry=geometry, crs="EPSG:4326")
 
         # Filter within 10 miles
         def calculate_distance(row):
@@ -137,9 +164,6 @@ def main():
 
         # Add shelters within 10 miles as green markers
         for idx, row in shelters_gdf_filtered.iterrows():
-            # Skip Paul's Place if it appears in the shelters data
-            if row['latitude'] == pauls_place_lat and row['longitude'] == pauls_place_lon:
-                continue
             folium.Marker(
                 location=[row['latitude'], row['longitude']],
                 popup=f"{row['name']} ({row['function']})",
