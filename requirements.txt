@@ -1,0 +1,8 @@
+streamlit
+pandas
+geopandas
+folium
+pyproj
+geopy
+requests
+streamlit_folium
