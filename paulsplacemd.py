@@ -30,8 +30,8 @@ transformer = Transformer.from_crs("EPSG:2248", "EPSG:4326", always_xy=True)
 @st.cache_data
 def load_csv_data():
     try:
-        csv_df = pd.read_csv("baltimore_help_social_health_welfare_shelters_locations.csv")  # Load the CSV file
-        # Remove Paul's Place from the CSV data
+        csv_df = pd.read_csv("baltimore_help_social_health_welfare_shelters_locations.csv")  
+        # Filter out Paul's Place from the CSV 
         csv_df = csv_df[csv_df["Location"] != "Paul's Place"]
         return csv_df
     except Exception as e:
@@ -159,7 +159,7 @@ def main():
         folium.Marker(
             location=[pauls_place_lat, pauls_place_lon],
             popup="Paul's Place",
-            icon=folium.Icon(color="purple", icon="info-sign")  # Purple marker with an info icon
+            icon=folium.Icon(color="purple", icon="info-sign")  # Pauls place purple marker with an info icon
         ).add_to(m)
 
         # Add shelters within 10 miles as green markers
