@@ -3,7 +3,6 @@
 
 # In[ ]:
 
-
 import streamlit as st
 import requests
 import pandas as pd
@@ -90,7 +89,7 @@ def main():
             combined_df = shelters_df
 
         # Define a mapping of location names to their functions
-          function_mapping = {
+        function_mapping = {
             "VOA Pratt House": "Emergency Shelters",
             "University of Maryland Medical Center": "Medical Services",
             "The Baltimore Station": "Emergency Shelters",
@@ -160,10 +159,9 @@ def main():
             "Mt. Washington Pediatric Hospital": "Medical Services",
             "MedStar Good Samaritan Hospital": "Medical Services",
             "Harbel Community Organization": "Community Services",
-            
-            }
+        }
 
-        # Update the function column in the combined DataFrame
+        # Update function column in the combined DataFrame
         combined_df['function'] = combined_df['name'].map(function_mapping).fillna("Unknown")
 
         # Convert to GeoDataFrame
@@ -209,7 +207,7 @@ def main():
         folium.Marker(
             location=[pauls_place_lat, pauls_place_lon],
             popup="Paul's Place",
-            icon=folium.Icon(color="purple", icon="info-sign")  # Pauls place purple marker with an info icon
+            icon=folium.Icon(color="purple", icon="info-sign")  # Purple marker with an info icon
         ).add_to(m)
 
         # Add shelters within 10 miles as green markers
@@ -237,3 +235,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
