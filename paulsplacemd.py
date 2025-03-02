@@ -79,8 +79,9 @@ def main():
         if not csv_df.empty:
             # Rename columns in CSV data to match API data
             csv_df = csv_df.rename(columns={"Location": "name", "Latitude": "latitude", "Longitude": "longitude"})
-            # Add missing columns to CSV data
-            csv_df['address'] = "Not Available"  # Add a placeholder for missing address data
+            # Ensure the 'address' column exists
+            if 'address' not in csv_df.columns:
+                csv_df['address'] = "Not Available"
             csv_df['function'] = "Unknown"  # Default function for CSV data
 
             # Combine API and CSV data
@@ -230,4 +231,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
