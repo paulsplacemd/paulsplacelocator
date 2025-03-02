@@ -159,6 +159,8 @@ def main():
             "Mt. Washington Pediatric Hospital": "Medical Services",
             "MedStar Good Samaritan Hospital": "Medical Services",
             "Harbel Community Organization": "Community Services",
+            "House of Ruth": "Emergency Shelters",  
+            "House of Ruth ES": "Emergency Shelters", 
         }
 
         # Update function column in the combined DataFrame
@@ -188,13 +190,6 @@ def main():
         # Filter shelters within 10 miles
         distance_threshold = 10  # 10 miles
         shelters_gdf_filtered = shelters_gdf_sorted[shelters_gdf_sorted['distance_to_pauls_place'].str.replace(' miles', '').astype(float) <= distance_threshold]
-
-        # Allow users to filter by function/category
-        function_options = shelters_gdf_filtered['function'].unique().tolist()
-        selected_functions = st.multiselect("Filter by Function/Category:", function_options, default=function_options)
-
-        # Filter by selected functions
-        shelters_gdf_filtered = shelters_gdf_filtered[shelters_gdf_filtered['function'].isin(selected_functions)]
 
         # Print the filtered shelters within 10 miles
         st.write(f"Shelters Within {distance_threshold} Miles of Paul's Place:")
