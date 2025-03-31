@@ -5,4 +5,5 @@ folium
 pyproj
 geopy
 requests
-streamlit_folium
+jupyter
+osmnx
